@@ -28,12 +28,17 @@ const Chats = ({ route }) => {
 
             const q = query(
                 collection(firestore, "messages"),
-                where("senderId", "in", [currentUser.uid, userEmail]),
-                where("receiverId", "in", [currentUser.uid, userEmail])
+                where("participants", "array-contains", currentUser.email)
             );
 
             const querySnapshot = await getDocs(q);
-            const messagesData = querySnapshot.docs.map(doc => doc.data());
+            const messagesData = querySnapshot.docs
+                .map(doc => doc.data())
+                .filter(message => message.participants.includes(userEmail));
+
+            // Mesajları saatine göre sıralıyoruz
+            messagesData.sort((a, b) => a.createdAt?.toMillis() - b.createdAt?.toMillis());
+
             setMessages(messagesData);
         } catch (error) {
             console.error("Error fetching messages: ", error);
@@ -55,6 +60,7 @@ const Chats = ({ route }) => {
             const messageData = {
                 senderId: currentUser.uid,
                 receiverId: userEmail,
+                participants: [currentUser.email, userEmail],
                 createdAt: serverTimestamp(),
                 text: message,
             };
@@ -73,7 +79,10 @@ const Chats = ({ route }) => {
             <FlatList
                 data={messages}
                 renderItem={({ item }) => (
-                    <View style={styles.messageContainer}>
+                    <View style={[
+                        styles.messageContainer,
+                        item.senderId === auth.currentUser.uid ? styles.sentMessage : styles.receivedMessage
+                    ]}>
                         <Text>{item.text}</Text>
                     </View>
                 )}
@@ -101,12 +110,18 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
     },
     messageContainer: {
-        backgroundColor: colors.gray,
         padding: 10,
         borderRadius: 5,
         marginBottom: 5,
         maxWidth: '80%',
+    },
+    sentMessage: {
+        backgroundColor: colors.primary,
         alignSelf: 'flex-end',
+    },
+    receivedMessage: {
+        backgroundColor: colors.gray,
+        alignSelf: 'flex-start',
     },
     inputContainer: {
         flexDirection: 'row',

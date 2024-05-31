@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { Avatar, Divider, FAB, Portal, Dialog, Button, TextInput } from 'react-native-paper';
 import { auth, firestore, serverTimestamp } from '../firebaseConfig';
-import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, addDoc } from "firebase/firestore";
+import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, addDoc, getDoc, setDoc } from "firebase/firestore";
 import { useNavigation } from '@react-navigation/native';
 import { colors } from './colors';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,38 +15,23 @@ const ContactRow = () => {
     const navigation = useNavigation();
 
     useEffect(() => {
-        const fetchConversations = async () => {
+        const fetchContacts = async () => {
             const currentUser = auth.currentUser;
             if (!currentUser) {
                 return;
             }
-            
-            const q = query(
-                collection(firestore, "chats"),
-                where("conversations", "array-contains", currentUser.email)
-            );
-            const querySnapshot = await getDocs(q);
-            const conversations = querySnapshot.docs.map(doc => {
-                const data = doc.data();
-                const usersData = Object.values(data).filter(val => typeof val === 'object');
-                const users = usersData.map(userData => ({
-                    displayName: userData.displayName,
-                    email: userData.email
-                }));
-                return users;
-            });
-    
-            const currentUserConversations = conversations.find(users => users.some(user => user.email === currentUser.email));
-            if (currentUserConversations) {
-                setAddedUsers(currentUserConversations);
+
+            const docRef = doc(firestore, "contacts", currentUser.uid);
+            const docSnap = await getDoc(docRef);
+            if (docSnap.exists()) {
+                setAddedUsers(docSnap.data().contacts || []);
             } else {
                 setAddedUsers([]);
             }
         };
-        
-        fetchConversations();
+
+        fetchContacts();
     }, []);
-    
 
     const handleSave = async () => {
         const q = query(
@@ -55,29 +40,55 @@ const ContactRow = () => {
         );
         const querySnapshot = await getDocs(q);
         const otherUserExists = querySnapshot.docs.length !== 0;
-    
+
         if (otherUserExists) {
             const userData = querySnapshot.docs[0].data();
-    
             const currentUser = auth.currentUser;
             const otherUserId = userData.uid;
-    
+
             const currentUserChatRef = doc(firestore, 'chats', currentUser.uid);
             const otherUserChatRef = doc(firestore, 'chats', otherUserId);
-    
+
             const currentUserUpdateData = {
                 conversations: arrayUnion({ email: userEmail, displayName: newDisplayName })
             };
-    
+
             const otherUserUpdateData = {
-                conversations: arrayUnion({ email: currentUser.email, displayName: currentUser.displayName })
+                conversations: arrayUnion({ email: currentUser.email })
             };
-    
+
             await updateDoc(currentUserChatRef, currentUserUpdateData);
             await updateDoc(otherUserChatRef, otherUserUpdateData);
-    
+
+            const contactsRef = doc(firestore, 'contacts', currentUser.uid);
+            const contactsDoc = await getDoc(contactsRef);
+
+            if (contactsDoc.exists()) {
+                await updateDoc(contactsRef, {
+                    contacts: arrayUnion({ displayName: newDisplayName, email: userEmail })
+                });
+            } else {
+                await setDoc(contactsRef, {
+                    contacts: [{ displayName: newDisplayName, email: userEmail }]
+                });
+            }
+
+            // Karşı tarafa güncelleme ekleme
+            const otherUserContactsRef = doc(firestore, 'contacts', otherUserId);
+            const otherUserContactsDoc = await getDoc(otherUserContactsRef);
+
+            if (otherUserContactsDoc.exists()) {
+                await updateDoc(otherUserContactsRef, {
+                    contacts: arrayUnion({ email: currentUser.email })
+                });
+            } else {
+                await setDoc(otherUserContactsRef, {
+                    contacts: [{ email: currentUser.email }]
+                });
+            }
+
             setAddedUsers(prevUsers => [{ displayName: newDisplayName, email: userEmail }, ...prevUsers]);
-    
+
             const messageCollectionRef = collection(firestore, "messages");
             const messageData = {
                 senderId: currentUser.uid,
@@ -86,15 +97,15 @@ const ContactRow = () => {
                 text: `New chat started with ${newDisplayName}`,
             };
             await addDoc(messageCollectionRef, messageData);
-    
         } else {
             alert("User not found!");
         }
-    
+
         setUserEmail('');
         setNewDisplayName('');
+        setIsDialogVisible(false);
     };
-    
+
     const handleUserPress = (user) => {
         navigation.navigate('Messages', { userEmail: user.email, displayName: user.displayName });
     };

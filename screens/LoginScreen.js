@@ -6,8 +6,8 @@ import { colors } from './colors';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('a@gmail.com');
-  const [password, setPassword] = useState('123456');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleLogin = () => {
     signInWithEmailAndPassword(auth, email, password)
