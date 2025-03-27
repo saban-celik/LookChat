@@ -1,10 +1,10 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import ContactRow from './ContactRow';
-import SettingsScreen from './SettingsScreen';
+//screens\BottomNavigator.js
 import { Ionicons } from '@expo/vector-icons';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import React from 'react';
 import { colors } from './colors';
-import Chats from './Chats';
+import ContactRow from './ContactRow';
+import SettingsScreen from './settings/SettingsScreen';
 
 const Tab = createBottomTabNavigator();
 

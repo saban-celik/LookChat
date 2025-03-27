@@ -1,17 +1,16 @@
-import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import LoginScreen from './screens/LoginScreen';
-import SignupScreen from './screens/SignupScreen';
-import SettingsScreen from './screens/SettingsScreen';
-import Chats from './screens/Chats';
+import React from 'react';
 import { Provider } from 'react-native-paper';
 import BottomNavigator from './screens/BottomNavigator';
-import AccountScreen from './screens/AccountScreen';
-import NotificationScreen from './screens/NotificationScreen';
-import PrivacyScreen from './screens/PrivacyScreen';
-import AboutScreen from './screens/AboutScreen';
+import Chats from './screens/Chats';
 import { colors } from './screens/colors';
+import LoginScreen from './screens/LoginScreen';
+import AboutScreen from './screens/settings/AboutScreen';
+import AccountScreen from './screens/settings/AccountScreen';
+import NotificationScreen from './screens/settings/NotificationScreen';
+import { default as PrivacyScreen, default as SettingsScreen } from './screens/settings/PrivacyScreen';
+import SignupScreen from './screens/SignupScreen';
 
 const Stack = createStackNavigator();
 

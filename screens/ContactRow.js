@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
-import { Avatar, Divider, FAB, Portal, Dialog, Button, TextInput } from 'react-native-paper';
-import { auth, firestore, serverTimestamp } from '../firebaseConfig';
-import { collection, doc, query, where, getDocs, updateDoc, arrayUnion, addDoc, getDoc, setDoc } from "firebase/firestore";
-import { useNavigation } from '@react-navigation/native';
-import { colors } from './colors';
+//screens\ContactRow.js
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import { addDoc, arrayUnion, collection, doc, getDoc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Avatar, Button, Dialog, Divider, FAB, Portal, TextInput } from 'react-native-paper';
+import { auth, firestore, serverTimestamp } from '../firebaseConfig';
+import { colors } from './colors';
 
 const ContactRow = () => {
     const [isDialogVisible, setIsDialogVisible] = useState(false);

@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, FlatList } from 'react-native';
-import { colors } from './colors';
-import { auth, firestore, serverTimestamp } from '../firebaseConfig';
-import { collection, query, where, getDocs, addDoc } from "firebase/firestore";
+//screens\Chats.js
 import { useNavigation } from '@react-navigation/native';
+import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
+import React, { useEffect, useState } from 'react';
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth, firestore, serverTimestamp } from '../firebaseConfig';
+import { colors } from './colors';
 
 const Chats = ({ route }) => {
     const [message, setMessage] = useState('');

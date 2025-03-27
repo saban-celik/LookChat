@@ -1,55 +1,63 @@
+//screens\LoginScreen.js
+import { LinearGradient } from 'expo-linear-gradient';
+import { sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
-import { Text, TextInput, Button, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth } from '../firebaseConfig';
 import { colors } from './colors';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const LoginScreen = ({ navigation }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('aban.elik27@gmail.com');
+  const [password, setPassword] = useState('123456');
+  const [loading, setLoading] = useState(false); // Add loading state
 
   const handleLogin = () => {
+    setLoading(true); // Set loading to true when login starts
     signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
+      .then(async (userCredential) => {
         const user = userCredential.user;
-        navigation.navigate('BottomNavigator');
-        setEmail('');
-        setPassword('');
+
+        if (user.emailVerified) {
+          navigation.navigate('BottomNavigator');
+          setEmail('');
+          setPassword('');
+        } else {
+          // Kullanıcı eğer e-posta doğrulamamışsa doğrulama e-postası gönder
+          await sendEmailVerification(user);
+          Alert.alert(
+            'E-posta Doğrulaması Gerekli',
+            'Hesabınızı kullanabilmek için e-posta adresinize gelen doğrulama linkine tıklayın.',
+            [{ text: 'Tamam' }]
+          );
+        }
       })
       .catch((error) => {
-        console.error('Hata:', error);
+        console.error('Giriş hatası:', error);
         if (error.code === 'auth/invalid-email') {
-          alert('Geçerli bir e-posta adresi giriniz.');
+          Alert.alert('Hata', 'Geçerli bir e-posta adresi giriniz.');
         } else if (error.code === 'auth/user-not-found') {
-          alert('Bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı.');
+          Alert.alert('Hata', 'Bu e-posta adresiyle kayıtlı bir kullanıcı bulunamadı.');
         } else if (error.code === 'auth/wrong-password') {
-          alert('Yanlış şifre girdiniz.');
+          Alert.alert('Hata', 'Yanlış şifre girdiniz.');
         } else {
-          console.error('Giriş hatası:', error);
+          Alert.alert('Hata', 'Bir hata oluştu, lütfen tekrar deneyin.');
         }
+      })
+      .finally(() => {
+        setLoading(false); // Set loading to false after the authentication process
       });
   };
 
-  const handleSignup = () => {
-    navigation.navigate('SignupScreen');
-  };
-
   return (
-    <LinearGradient
-      colors={['black', '#0080FF']}
-      style={styles.gradient}
-      start={[0, 0]}
-      end={[0, 1]}
-    >
+    <LinearGradient colors={[colors.black, colors.primary]} style={styles.gradient} start={[0, 0]} end={[0, 1]}>
       <View style={styles.container}>
         <Text style={styles.title}>Login</Text>
         <View style={styles.inputContainer}>
           <Text style={styles.inputTitle}>Email</Text>
           <TextInput
             style={styles.input}
-            placeholder="@example.gmail.com"
-            placeholderTextColor={colors.black} // Placeholder rengi siyah
+            placeholder="@example.com"
+            placeholderTextColor={colors.black}
             onChangeText={(text) => setEmail(text)}
             value={email}
             keyboardType="email-address"
@@ -60,18 +68,24 @@ const LoginScreen = ({ navigation }) => {
           <TextInput
             style={styles.input}
             placeholder="******"
-            placeholderTextColor={colors.black} // Placeholder rengi siyah
+            placeholderTextColor={colors.black}
             onChangeText={(text) => setPassword(text)}
             value={password}
             secureTextEntry
           />
         </View>
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Login</Text>
+          <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+            {loading ? (
+              <ActivityIndicator size="small" color="white" /> // Show loading spinner
+            ) : (
+              <Text style={styles.buttonText}>Login</Text>
+            )}
           </TouchableOpacity>
         </View>
-        <Text style={styles.signupText}>Don't have an account? <Text style={styles.signupLink} onPress={handleSignup}>Sign Up</Text></Text>
+        <Text style={styles.signupText}>
+          Don't have an account? <Text style={styles.signupLink} onPress={() => navigation.navigate('SignupScreen')}>Sign Up</Text>
+        </Text>
       </View>
     </LinearGradient>
   );
@@ -111,7 +125,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderRadius: 15,
     paddingHorizontal: 15,
-    backgroundColor: colors.gray,
+    backgroundColor: colors.white,
     color: colors.black,
     fontSize: 16,
   },

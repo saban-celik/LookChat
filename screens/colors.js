@@ -1,3 +1,4 @@
+//screens\colors.js
 export const colors ={
     gray:'#EEECDF',
     primary:'#11709C',
