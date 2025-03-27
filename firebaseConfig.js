@@ -1,7 +1,6 @@
 // firebaseConfig.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
-import { getDatabase } from "firebase/database";
 import { getFirestore, serverTimestamp } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -15,9 +14,9 @@ const firebaseConfig = {
   databaseURL: "https://lookchat-64b42-default-rtdb.firebaseio.com",
 };
 
-const app = initializeApp(firebaseConfig); // firestoreConfig yerine firebaseConfig
-const auth = getAuth(app); // getAuth(app) olarak düzeltildi
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app); // Düzeltildi: app parametresi eklendi
 const firestore = getFirestore(app);
-const realtimeDb = getDatabase(app);
 
-export { app, auth, firestore, realtimeDb, serverTimestamp }; // Tek export
+export { auth, firestore, serverTimestamp };
+export default app;
